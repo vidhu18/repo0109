@@ -1,0 +1,95 @@
+from __future__ import print_function
+from pyspark.sql import Row
+from pyspark.sql.types import *
+from pyspark.sql import SparkSession
+
+Spark = SparkSession.builder.getOrCreate()
+hadoopLines = Spark.sparkContext.textFile("file:/usr/local/spark/examples/src/main/resources/people.txt")
+parts = hadoopLines.map(lambda l: l.split(","))
+
+def reflect(parts,Spark):
+    people1 = parts.map(lambda p: Row(name=p[0], age=int(p[1])))
+
+    schemaPeople1 = Spark.createDataFrame(people1)
+    schemaPeople1.createOrReplaceTempView("people1")
+    
+    teenagers1 = Spark.sql("SELECT * FROM people1 WHERE age >= 13 AND age <= 19")
+    teenagers1.show()
+    return teenagers1
+
+def pgm(parts,Spark):
+    people2 = parts.map(lambda p: (p[0], p[1].strip()))
+    
+    schema = StructType([StructField("name", StringType(), True), StructField("age", StringType(), True)])
+   
+    schemaPeople2 = Spark.createDataFrame(people2,schema)
+    schemaPeople2.createOrReplaceTempView("people2")
+    
+    teenagers2 = Spark.sql("SELECT * FROM people2 WHERE name = 'Andy'")
+    teenagers2.show()
+    return teenagers2
+
+def infer_file(Spark):
+     df1 = Spark.read.load("file:/home/hduser/sparkdata/usdata.csv", format="csv", inferSchema="True", header="True")
+     df1.show()
+     return df1
+
+def pgm_file(Spark):
+     uschema = StructType ([StructField("first_name", StringType(), True), StructField("last_name", StringType(), True),
+                            StructField("company_name", StringType(), True),
+                            StructField("address", StringType(), True), StructField("city", StringType(), True),
+                            StructField("country", StringType(), True), StructField("state", StringType(), True),
+                            StructField("zip", StringType(), True), StructField("age", IntegerType(), True),
+                            StructField("phone1", StringType(), True), StructField("phone2", StringType(), True),
+                            StructField("email", StringType(), True), StructField("website", StringType(), True),])
+     udf1 = Spark.read.csv("file:/home/hduser/sparkdata/usdata.csv", header="True", schema=uschema)
+     udf1.show(6)
+     return udf1
+
+def file_Orc(Spark):
+    df3 = Spark.read.load("file:/home/hduser/sparkdata/agecategory_orc.orc", format="orc")
+    df3.show(10)
+    return df3
+
+def file_Parq(Spark):
+    df4 = Spark.read.load("file:/home/hduser/sparkdata/agecategory_parquet.parquet", format="parquet")
+    df4.show()
+    return df4
+    
+f1 = open("/home/hduser/uip.txt","r")
+R1 = f1.read()
+print ("inside the input file",R1)
+
+if R1 == '1':
+   reflect(parts,Spark)
+elif R1 == '2':
+   pgm(parts,Spark)
+elif R1 == '3':
+   infer_file(Spark)
+elif R1 == '4':
+   pgm_file(Spark)
+elif R1 == '5':
+   file_Orc(Spark)
+elif R1 == '6':
+   file_Parq(Spark)
+else:
+   print ("No Proper Inputs given..Try again")
+
+
+#Input File.py
+
+#to give the input to pysparkpractice.sh
+user_inp = raw_input("Enter your choice [1.relectRdd 2.PgmRdd 3.inference 4.schema 5.orc 6.parq]:")
+f=open("/home/hduser/uip.txt",'w')
+f.write(user_inp)
+
+Wrapper.sh
+echo "Running the python script"
+python inputs.py
+echo "running the function file"
+spark-submit pysparkpractice.py
+
+
+
+
+
