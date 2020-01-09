@@ -17,6 +17,8 @@ def reflect(parts,Spark):
     teenagers1.show()
     return teenagers1
 
+#to check for github
+
 def pgm(parts,Spark):
     people2 = parts.map(lambda p: (p[0], p[1].strip()))
     
